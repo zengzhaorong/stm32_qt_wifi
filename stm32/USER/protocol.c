@@ -108,7 +108,7 @@ static int proto_packet_detect(struct ringbuffer *ringbuf, proto_detect_t *detec
 	if(ringbuf==NULL || proto_data==NULL || proto_len==NULL || size<PROTO_PACK_MIN_LEN)
 		return -1;
 
-	tmp_protoLen = *proto_len;
+	tmp_protoLen = detect->len;
 
 	/* get and check protocol head */
 	if(!detect->head)
@@ -183,7 +183,7 @@ static int proto_packet_detect(struct ringbuffer *ringbuf, proto_detect_t *detec
 					detect->pack_len = PROTO_DATA_OFFSET +len +1;
 					if(detect->pack_len > size)
 					{
-						printf("ERROR: %s: pack len[%d] > buf size[%d]\n", __FUNCTION__, size, detect->pack_len);
+						printf("ERROR: %s: pack len[%d] > buf size[%d]\n", __FUNCTION__, detect->pack_len, size);
 						memset(detect, 0, sizeof(proto_detect_t));
 					}
 				}
@@ -215,7 +215,7 @@ static int proto_packet_detect(struct ringbuffer *ringbuf, proto_detect_t *detec
 		}
 	}
 
-	*proto_len = tmp_protoLen;
+	detect->len = tmp_protoLen;
 
 	return -1;
 }

@@ -36,7 +36,15 @@ int main(void)
 	while(1)
 	{
 
-		proto_server_handel(&wifi_ringbuf);
+		// 未连接上，wifi模块处理接收的数据
+		if(wifi_get_tcp_state() != TCP_STATE_CONNECTED)
+		{
+			wifi_data_handle();
+		}
+		else	// 已连接，协议模块处理数据
+		{
+			proto_server_handel(&wifi_ringbuf);
+		}
 
 	}	 
 }

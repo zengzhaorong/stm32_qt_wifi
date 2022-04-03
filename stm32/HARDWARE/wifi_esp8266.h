@@ -40,9 +40,15 @@ typedef enum{
     TCP_ROLE_CLIENT,
 }tcp_role_e;
 
+typedef enum {
+    TCP_STATE_DISCONNECT,
+    TCP_STATE_CONNECTED,
+}tcp_state_e;
+
 typedef struct{
     wifi_mode_e mode;
     tcp_role_e tcp_role;   // server/client
+    tcp_state_e tcp_state;
 }wifi_mngr_info_t;
 
 
@@ -58,6 +64,9 @@ int wifi_connect_server(const char *ip, int port);
 
 int wifi_send_data(char *buf, int len);
 int wifi_set_AT(char *at, int len, const char *ack, int timeout);
+
+tcp_state_e wifi_get_tcp_state(void);
+void wifi_data_handle(void);
 void wifi_reset(void);
 int wifi_init(void);
 void wifi_deinit(void);

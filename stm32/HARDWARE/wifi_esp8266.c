@@ -134,6 +134,9 @@ int wifi_send_data(char *buf, int len)
 {
     char at_buf[64] = {0};
 
+    if(wifi_get_tcp_state() != TCP_STATE_CONNECTED)
+        return -1;
+
     memset(at_buf, 0, sizeof(at_buf));
     if(wifi_mngr.tcp_role == TCP_ROLE_SERVER)
     {
@@ -150,7 +153,7 @@ int wifi_send_data(char *buf, int len)
 
     // send data
     uart3_send(buf, len);
-	//printf("%s[%d]: %s\r\n", __FUNCTION__, len, buf);
+	printf("%s[%d]: %s\r\n", __FUNCTION__, len, buf);
 
     return len;
 }
@@ -208,6 +211,45 @@ int wifi_set_AT(char *AT_buf, int len, const char *ack, int timeout)
     }
 
     return result;
+}
+
+// 获取TCP状态
+tcp_state_e wifi_get_tcp_state(void)
+{
+    return wifi_mngr.tcp_state;
+}
+
+// wifi数据处理 PS:目前只检测连接状态
+void wifi_data_handle(void)
+{
+    static char ack_data[32] = {0};
+    static int data_len = 0;
+    int ack_len;
+    int ret;
+
+    ack_len = strlen(WIFI_CONNECT_STR);
+    if(ringbuf_datalen(&wifi_ringbuf) > 0)
+    {
+        ret = ringbuf_read(&wifi_ringbuf, (unsigned char *)ack_data+data_len, sizeof(ack_data)-data_len);
+        if(ret > 0)
+        {
+            data_len += ret;
+
+            // 检测连接关键词
+            if(strstr(ack_data, WIFI_CONNECT_STR) != NULL)
+            {
+                printf("esp8266 TCP connect success.\r\n");
+                wifi_mngr.tcp_state = TCP_STATE_CONNECTED;
+                return ;
+            }
+            // no match
+            if(data_len >= ack_len)
+            {
+                memcpy(ack_data, ack_data+data_len-(ack_len-1), ack_len-1);
+                data_len = ack_len-1;
+            }
+        }
+    }
 }
 
 void wifi_reset(void)
